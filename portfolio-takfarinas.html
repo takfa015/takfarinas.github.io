@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TAKFARINAS SI FODIL — AI Creator</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Bebas+Neue&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--cyan:#00f5ff;--magenta:#ff00a8;--green:#39ff14;--gold:#c9a84c;--dark:#020408;--dark2:#06101a;--text:#c8dde8;--grid:rgba(0,245,255,0.04)}
+*{margin:0;padding:0;box-sizing:border-box}html{scroll-behavior:smooth}
+body{background:var(--dark);color:var(--text);font-family:'Syne',sans-serif;overflow-x:hidden;cursor:none}
+.cursor{width:10px;height:10px;border:2px solid var(--cyan);border-radius:50%;position:fixed;top:0;left:0;pointer-events:none;z-index:9999;mix-blend-mode:screen;transition:background .15s}
+.cursor-trail{width:36px;height:36px;border:1px solid rgba(0,245,255,.25);border-radius:50%;position:fixed;top:0;left:0;pointer-events:none;z-index:9998}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:60px 60px;pointer-events:none;z-index:0}
+body::after{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.1) 2px,rgba(0,0,0,.1) 4px);pointer-events:none;z-index:1}
+.noise{position:fixed;inset:0;z-index:2;pointer-events:none;opacity:.025;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");background-size:200px}
+/* LOADER */
+#loader{position:fixed;inset:0;background:var(--dark);z-index:1000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;transition:opacity .6s}
+#loader.done{opacity:0;pointer-events:none}
+.ld-text{font-family:'Space Mono',monospace;font-size:11px;letter-spacing:5px;color:var(--cyan);text-transform:uppercase}
+.ld-bar-wrap{width:220px;height:2px;background:rgba(0,245,255,.1)}
+.ld-bar{height:100%;background:var(--cyan);width:0;animation:ldbar 1.6s ease forwards;box-shadow:0 0 10px var(--cyan)}
+@keyframes ldbar{to{width:100%}}
+.ld-pct{font-family:'Bebas Neue',sans-serif;font-size:72px;color:rgba(0,245,255,.1);position:absolute;bottom:30px}
+/* NAV */
+nav{position:fixed;top:0;width:100%;z-index:100;padding:20px 60px;display:flex;justify-content:space-between;align-items:center;background:linear-gradient(180deg,rgba(2,4,8,.95) 0%,transparent);backdrop-filter:blur(4px)}
+.nav-logo{font-family:'Space Mono',monospace;font-size:11px;letter-spacing:4px;color:var(--cyan);text-transform:uppercase}
+.nav-links{display:flex;gap:36px;list-style:none}
+.nav-links a{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:3px;color:var(--text);text-decoration:none;text-transform:uppercase;transition:color .2s;position:relative}
+.nav-links a::after{content:'';position:absolute;bottom:-4px;left:0;width:0;height:1px;background:var(--cyan);transition:width .3s}
+.nav-links a:hover{color:var(--cyan)}
+.nav-links a:hover::after{width:100%}
+/* HERO */
+.hero{min-height:100vh;display:flex;flex-direction:column;justify-content:center;padding:120px 60px 60px;position:relative;z-index:3}
+.hero-tag{font-family:'Space Mono',monospace;font-size:11px;letter-spacing:5px;color:var(--magenta);text-transform:uppercase;margin-bottom:24px;animation:fadeUp .8s ease both}
+.hero-tag::before{content:'> ';color:var(--green)}
+.hero-name{font-family:'Bebas Neue',sans-serif;font-size:clamp(64px,10vw,150px);line-height:.9;color:#fff;animation:fadeUp .8s .1s ease both;display:inline-block}
+.glitch{position:relative;display:inline-block}
+.glitch::before,.glitch::after{content:attr(data-t);position:absolute;top:0;left:0;width:100%;height:100%}
+.glitch::before{color:var(--cyan);animation:g1 4s infinite;clip-path:polygon(0 0,100% 0,100% 35%,0 35%)}
+.glitch::after{color:var(--magenta);animation:g2 4s infinite;clip-path:polygon(0 65%,100% 65%,100% 100%,0 100%)}
+@keyframes g1{0%,90%,100%{transform:translate(0);opacity:0}92%{transform:translate(-4px,2px);opacity:.8}94%{transform:translate(4px,-2px);opacity:.8}96%{transform:translate(0);opacity:0}}
+@keyframes g2{0%,87%,100%{transform:translate(0);opacity:0}89%{transform:translate(4px,-2px);opacity:.8}91%{transform:translate(-4px,2px);opacity:.8}93%{transform:translate(0);opacity:0}}
+.hero-sub{font-family:'Bebas Neue',sans-serif;font-size:clamp(36px,5vw,72px);letter-spacing:4px;color:transparent;-webkit-text-stroke:1px rgba(0,245,255,.4);animation:fadeUp .8s .2s ease both;margin-top:8px}
+.hero-desc{margin-top:36px;font-size:15px;line-height:1.8;color:rgba(200,221,232,.65);max-width:460px;animation:fadeUp .8s .3s ease both}
+.hero-cta{margin-top:44px;display:flex;gap:16px;animation:fadeUp .8s .4s ease both;flex-wrap:wrap}
+.btn{font-family:'Space Mono',monospace;font-size:11px;letter-spacing:3px;text-transform:uppercase;padding:13px 28px;text-decoration:none;border:1px solid;transition:all .3s;display:inline-block}
+.btn-p{background:var(--cyan);color:var(--dark);border-color:var(--cyan)}
+.btn-p:hover{background:transparent;color:var(--cyan);box-shadow:0 0 30px rgba(0,245,255,.3)}
+.btn-s{background:transparent;color:var(--text);border-color:rgba(200,221,232,.25)}
+.btn-s:hover{border-color:var(--magenta);color:var(--magenta)}
+.scroll-ind{position:absolute;bottom:36px;right:60px;display:flex;flex-direction:column;align-items:center;gap:8px;animation:fadeUp 1s .8s ease both}
+.scroll-ind span{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:4px;color:rgba(200,221,232,.35);writing-mode:vertical-rl;text-transform:uppercase}
+.scroll-line{width:1px;height:55px;background:linear-gradient(180deg,rgba(0,245,255,.5),transparent);animation:sp 2s infinite}
+@keyframes sp{0%,100%{opacity:.3}50%{opacity:1}}
+/* STATS */
+.stats{position:relative;z-index:3;border-top:1px solid rgba(0,245,255,.1);border-bottom:1px solid rgba(0,245,255,.1);padding:28px 60px;display:flex;gap:50px;flex-wrap:wrap;background:rgba(0,245,255,.015)}
+.stat{display:flex;flex-direction:column;gap:5px}
+.stat-n{font-family:'Bebas Neue',sans-serif;font-size:44px;color:var(--cyan);line-height:1}
+.stat-l{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:3px;color:rgba(200,221,232,.45);text-transform:uppercase}
+/* SECTIONS */
+.section{padding:90px 60px;position:relative;z-index:3}
+.section-alt{background:rgba(0,245,255,.01);border-top:1px solid rgba(0,245,255,.07)}
+.sec-header{display:flex;align-items:baseline;gap:16px;margin-bottom:50px}
+.sec-num{font-family:'Space Mono',monospace;font-size:10px;color:var(--magenta);letter-spacing:2px}
+.sec-title{font-family:'Bebas Neue',sans-serif;font-size:clamp(44px,6vw,80px);color:#fff;letter-spacing:3px}
+.sec-line{flex:1;height:1px;background:linear-gradient(90deg,rgba(0,245,255,.3),transparent);margin-left:16px}
+.project-intro{margin-bottom:32px;display:flex;align-items:flex-start;gap:24px;flex-wrap:wrap}
+.proj-tag{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:3px;text-transform:uppercase;white-space:nowrap;margin-top:2px}
+.proj-desc{font-size:14px;line-height:1.7;color:rgba(200,221,232,.6);max-width:620px}
+/* CRAVE GRID */
+.crave-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:3px}
+.crave-item{position:relative;overflow:hidden;background:var(--dark2);cursor:none}
+.crave-item:nth-child(1){grid-column:span 2;grid-row:span 2}
+.crave-item:nth-child(11){grid-column:span 2}
+.crave-item img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .5s ease;min-height:200px}
+.crave-item:hover img{transform:scale(1.06)}
+.crave-overlay{position:absolute;inset:0;background:linear-gradient(180deg,transparent 50%,rgba(2,4,8,.85) 100%);opacity:0;transition:opacity .3s;display:flex;align-items:flex-end;padding:18px}
+.crave-item:hover .crave-overlay{opacity:1}
+.crave-label{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--gold);text-transform:uppercase}
+/* BRAND GRID */
+.brand-grid{display:grid;grid-template-columns:1fr 1fr;gap:3px}
+.brand-item{position:relative;overflow:hidden;background:var(--dark2);cursor:none}
+.brand-item img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .5s;min-height:400px}
+.brand-item:hover img{transform:scale(1.05)}
+.brand-overlay{position:absolute;inset:0;background:linear-gradient(180deg,transparent 40%,rgba(2,4,8,.9) 100%);display:flex;flex-direction:column;justify-content:flex-end;padding:28px;opacity:0;transition:opacity .3s}
+.brand-item:hover .brand-overlay{opacity:1}
+.brand-tag{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--cyan);margin-bottom:6px}
+.brand-name{font-family:'Bebas Neue',sans-serif;font-size:28px;color:#fff;letter-spacing:2px}
+/* VIDEO GRID */
+.video-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:3px}
+.video-item{position:relative;background:var(--dark2);overflow:hidden;cursor:none}
+.video-item video{width:100%;display:block;aspect-ratio:9/16;object-fit:cover}
+.video-badge{position:absolute;bottom:14px;left:14px;font-family:'Space Mono',monospace;font-size:9px;letter-spacing:3px;color:#fff;text-transform:uppercase;background:rgba(0,0,0,.65);padding:5px 10px;border:1px solid rgba(0,245,255,.3)}
+/* LIGHTBOX */
+.lightbox{position:fixed;inset:0;z-index:500;background:rgba(2,4,8,.97);display:none;align-items:center;justify-content:center;cursor:none}
+.lightbox.open{display:flex}
+.lightbox img{max-width:88vw;max-height:90vh;object-fit:contain;border:1px solid rgba(0,245,255,.12)}
+.lb-close{position:absolute;top:22px;right:28px;font-size:22px;color:var(--cyan);cursor:none;opacity:.7;transition:opacity .2s;line-height:1}
+.lb-close:hover{opacity:1}
+.lb-prev,.lb-next{position:absolute;top:50%;transform:translateY(-50%);font-size:32px;color:var(--cyan);cursor:none;padding:16px;opacity:.5;transition:opacity .2s;user-select:none}
+.lb-prev{left:16px}.lb-next{right:16px}
+.lb-prev:hover,.lb-next:hover{opacity:1}
+.lb-counter{position:absolute;bottom:20px;left:50%;transform:translateX(-50%);font-family:'Space Mono',monospace;font-size:10px;letter-spacing:3px;color:rgba(0,245,255,.45)}
+/* ABOUT */
+.about-wrap{display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center}
+.about-visual{position:relative;height:420px}
+.ab{position:absolute;border:1px solid}
+.ab1{inset:0;border-color:rgba(0,245,255,.12)}
+.ab2{inset:18px;border-color:rgba(255,0,168,.08)}
+.ab3{inset:36px;border-color:rgba(57,255,20,.06)}
+.ab-center{position:absolute;inset:54px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:12px}
+.ab-icon{font-size:52px}
+.ab-tagline{font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:3px;color:var(--cyan)}
+.ab-coords{font-family:'Space Mono',monospace;font-size:8px;letter-spacing:3px;color:rgba(0,245,255,.35)}
+.clbl{position:absolute;font-family:'Space Mono',monospace;font-size:8px;color:rgba(0,245,255,.25)}
+.about-text p{font-size:15px;line-height:1.9;color:rgba(200,221,232,.7);margin-bottom:18px}
+.hl{color:var(--cyan)}
+/* SKILLS */
+.skills-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:2px;margin-top:50px}
+.skill{padding:26px;border:1px solid rgba(0,245,255,.07);background:rgba(0,245,255,.015);transition:all .3s;position:relative;overflow:hidden}
+.skill::before{content:'';position:absolute;top:0;left:0;width:3px;height:0;background:var(--cyan);transition:height .4s}
+.skill:hover{background:rgba(0,245,255,.035);border-color:rgba(0,245,255,.18)}
+.skill:hover::before{height:100%}
+.skill-icon{font-size:24px;margin-bottom:12px}
+.skill-name{font-family:'Syne',sans-serif;font-weight:700;font-size:14px;color:#fff;margin-bottom:6px}
+.skill-tools{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--cyan);text-transform:uppercase}
+/* CONTACT */
+.contact-section{padding:90px 60px;z-index:3;position:relative;text-align:center;border-top:1px solid rgba(0,245,255,.07)}
+.contact-big{font-family:'Bebas Neue',sans-serif;font-size:clamp(52px,9vw,130px);line-height:.9;color:transparent;-webkit-text-stroke:1px rgba(255,255,255,.12);margin-bottom:36px;letter-spacing:4px}
+.contact-big span{color:#fff;-webkit-text-stroke:0}
+.contact-email{font-family:'Space Mono',monospace;font-size:clamp(13px,1.8vw,18px);color:var(--cyan);text-decoration:none;letter-spacing:3px;border-bottom:1px solid rgba(0,245,255,.3);padding-bottom:4px;transition:all .3s}
+.contact-email:hover{color:#fff;border-color:#fff}
+.social-links{margin-top:44px;display:flex;gap:20px;justify-content:center;flex-wrap:wrap}
+.social-link{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:3px;text-transform:uppercase;color:rgba(200,221,232,.45);text-decoration:none;padding:11px 22px;border:1px solid rgba(200,221,232,.12);transition:all .3s}
+.social-link:hover{color:var(--magenta);border-color:var(--magenta)}
+footer{padding:20px 60px;z-index:3;position:relative;border-top:1px solid rgba(0,245,255,.05);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px}
+footer span{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:3px;color:rgba(200,221,232,.25);text-transform:uppercase}
+.dot-live{display:inline-flex;align-items:center;gap:8px}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:dp 2s infinite}
+@keyframes dp{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(57,255,20,.4)}50%{opacity:.7;box-shadow:0 0 0 6px rgba(57,255,20,0)}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(28px)}to{opacity:1;transform:translateY(0)}}
+.reveal{opacity:0;transform:translateY(35px);transition:all .75s ease}
+.reveal.visible{opacity:1;transform:translateY(0)}
+</style>
+</head>
+<body>
+<div class="noise"></div>
+<div id="loader">
+  <div class="ld-text">Chargement du portfolio...</div>
+  <div class="ld-bar-wrap"><div class="ld-bar"></div></div>
+  <div class="ld-pct" id="ldpct">0</div>
+</div>
+<div class="cursor" id="cursor"></div>
+<div class="cursor-trail" id="cursorTrail"></div>
+
+<!-- LIGHTBOX -->
+<div class="lightbox" id="lightbox">
+  <span class="lb-close" id="lbClose">✕</span>
+  <span class="lb-prev" id="lbPrev">‹</span>
+  <img id="lbImg" src="" alt="">
+  <span class="lb-next" id="lbNext">›</span>
+  <div class="lb-counter" id="lbCounter"></div>
+</div>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">TSF // AI Creator</div>
+  <ul class="nav-links">
+    <li><a href="#crave">CRAVE</a></li>
+    <li><a href="#brand">Brand</a></li>
+    <li><a href="#videos">Vidéos</a></li>
+    <li><a href="#about">À propos</a></li>
+    <li><a href="#contact">Contact</a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-tag">AI Content Creator &amp; Visual Artist</div>
+  <h1 class="hero-name">
+    <span class="glitch" data-t="TAKFARINAS">TAKFARINAS</span><br>
+    <span class="glitch" data-t="SI FODIL">SI FODIL</span>
+  </h1>
+  <p class="hero-sub">Génération Nouvelle</p>
+  <p class="hero-desc">Créateur de contenu IA basé en Algérie. Campagnes brand CGI, vidéos Sora, avatars hyper-réalistes et prompt engineering de précision.</p>
+  <div class="hero-cta">
+    <a href="#crave" class="btn btn-p">Voir les projets</a>
+    <a href="#contact" class="btn btn-s">Me contacter</a>
+  </div>
+  <div class="scroll-ind">
+    <div class="scroll-line"></div>
+    <span>Scroll</span>
+  </div>
+</section>
+
+<!-- STATS -->
+<div class="stats reveal">
+  <div class="stat"><span class="stat-n">11</span><span class="stat-l">Visuels CRAVE</span></div>
+  <div class="stat"><span class="stat-n">5</span><span class="stat-l">Vidéos IA</span></div>
+  <div class="stat"><span class="stat-n">2</span><span class="stat-l">Avatars actifs</span></div>
+  <div class="stat"><span class="stat-n">DZ</span><span class="stat-l">Origine & Culture</span></div>
+</div>
+
+<!-- SECTION 01 — CRAVE -->
+<section class="section" id="crave">
+  <div class="sec-header reveal">
+    <span class="sec-num">01</span>
+    <h2 class="sec-title">CRAVE — Ramadan</h2>
+    <div class="sec-line"></div>
+  </div>
+  <div class="project-intro reveal">
+    <span class="proj-tag" style="color:var(--gold);">— Campagne Brand CGI</span>
+    <p class="proj-desc">Photographie produit CGI luxe pour une marque algérienne de pâtisserie premium. Esthétique Moorish, boîtes flottantes, campagne Ramadan multiformat — entièrement généré par IA.</p>
+  </div>
+  <div class="crave-grid reveal" id="craveGrid">
+    <div class="crave-item" data-src="grok_image_1772888839068.jpg"><img src="grok_image_1772888839068.jpg" alt="CRAVE Gold Box"><div class="crave-overlay"><span class="crave-label">CRAVE · Gold Box</span></div></div>
+    <div class="crave-item" data-src="1772888931588.png"><img src="1772888931588.png" alt="CRAVE Berry"><div class="crave-overlay"><span class="crave-label">CRAVE · Berry Box</span></div></div>
+    <div class="crave-item" data-src="1772889172562.png"><img src="1772889172562.png" alt="CRAVE Green"><div class="crave-overlay"><span class="crave-label">CRAVE · Green Box</span></div></div>
+    <div class="crave-item" data-src="1772889272699_1_.png"><img src="1772889272699_1_.png" alt="CRAVE Dark"><div class="crave-overlay"><span class="crave-label">CRAVE · Studio Dark</span></div></div>
+    <div class="crave-item" data-src="1772889803612_1_.png" style="grid-column:span 2;"><img src="1772889803612_1_.png" alt="CRAVE Trio Dark"><div class="crave-overlay"><span class="crave-label">CRAVE · Trio Dark Gold</span></div></div>
+    <div class="crave-item" data-src="1772890421155.png"><img src="1772890421155.png" alt="CRAVE Rose"><div class="crave-overlay"><span class="crave-label">CRAVE · Trio Rose</span></div></div>
+    <div class="crave-item" data-src="1772890535452.png"><img src="1772890535452.png" alt="CRAVE Ramadan"><div class="crave-overlay"><span class="crave-label">رمضان كريم · Ramadan</span></div></div>
+    <div class="crave-item" data-src="1772892189157.png"><img src="1772892189157.png" alt="Besboussa"><div class="crave-overlay"><span class="crave-label">Besboussa Keshta Box</span></div></div>
+    <div class="crave-item" data-src="1772891705389_1_.png"><img src="1772891705389_1_.png" alt="Cookie Lava"><div class="crave-overlay"><span class="crave-label">Cookie Lava Box</span></div></div>
+    <div class="crave-item" data-src="1772891568532.png"><img src="1772891568532.png" alt="Fruit Snow"><div class="crave-overlay"><span class="crave-label">Fruit Snow Cake</span></div></div>
+    <div class="crave-item" data-src="1772891868407_1_.png" style="grid-column:span 2;"><img src="1772891868407_1_.png" alt="Crunch Choco"><div class="crave-overlay"><span class="crave-label">Crunch Choco Box</span></div></div>
+  </div>
+</section>
+
+<!-- SECTION 02 — BRAND & LIFESTYLE -->
+<section class="section section-alt" id="brand">
+  <div class="sec-header reveal">
+    <span class="sec-num">02</span>
+    <h2 class="sec-title">Brand & Lifestyle</h2>
+    <div class="sec-line"></div>
+  </div>
+  <div class="project-intro reveal">
+    <span class="proj-tag" style="color:var(--cyan);">— UGC · Luxe · Lifestyle</span>
+    <p class="proj-desc">Contenus lifestyle et campagnes produit : photographie luxe simulée et UGC authentique généré par IA pour marques algériennes.</p>
+  </div>
+  <div class="brand-grid reveal" id="brandGrid">
+    <div class="brand-item" data-src="1773099126764.png">
+      <img src="1773099126764.png" alt="IZEM Energy UGC">
+      <div class="brand-overlay">
+        <div class="brand-tag">UGC Lifestyle · IZEM Energy by IFRI</div>
+        <div class="brand-name">IZEM by IFRI</div>
+      </div>
+    </div>
+    <div class="brand-item" data-src="1772889272699.png">
+      <img src="1772889272699.png" alt="CRAVE Studio">
+      <div class="brand-overlay">
+        <div class="brand-tag">Studio CGI · Product Photography</div>
+        <div class="brand-name">CRAVE Studio</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SECTION 03 — VIDÉOS IA -->
+<section class="section" id="videos">
+  <div class="sec-header reveal">
+    <span class="sec-num">03</span>
+    <h2 class="sec-title">Vidéos IA</h2>
+    <div class="sec-line"></div>
+  </div>
+  <div class="project-intro reveal">
+    <span class="proj-tag" style="color:var(--green);">— Sora · IA Vidéo</span>
+    <p class="proj-desc">Productions vidéo générées par IA — Sora et outils IA vidéo. Mouvement naturel, esthétique cinématique, scènes construites entièrement via prompt.</p>
+  </div>
+  <div class="video-grid reveal">
+    <div class="video-item"><video controls preload="metadata" loop><source src="sora-video-s_69b0dbf670848191907f8c023dd5c417-2026-03-11.mp4" type="video/mp4"></video><div class="video-badge">Sora · 01</div></div>
+    <div class="video-item"><video controls preload="metadata" loop><source src="sora-video-s_69b0cacd9e7081918271bfea6d855d0a-2026-03-11.mp4" type="video/mp4"></video><div class="video-badge">Sora · 02</div></div>
+    <div class="video-item"><video controls preload="metadata" loop><source src="lv_0_20260309163604.mp4" type="video/mp4"></video><div class="video-badge">IA Vidéo · 01</div></div>
+    <div class="video-item"><video controls preload="metadata" loop><source src="lv_0_20260310051149.mp4" type="video/mp4"></video><div class="video-badge">IA Vidéo · 02</div></div>
+    <div class="video-item"><video controls preload="metadata" loop><source src="lv_0_20260310200026.mp4" type="video/mp4"></video><div class="video-badge">IA Vidéo · 03</div></div>
+  </div>
+</section>
+
+<!-- SECTION 04 — À PROPOS + SKILLS -->
+<section class="section section-alt" id="about">
+  <div class="sec-header reveal"><span class="sec-num">04</span><h2 class="sec-title">À Propos</h2><div class="sec-line"></div></div>
+  <div class="about-wrap">
+    <div class="about-visual reveal">
+      <div class="ab ab1"></div><div class="ab ab2"></div><div class="ab ab3"></div>
+      <div class="ab-center">
+        <div class="ab-icon">🧬</div>
+        <div class="ab-tagline">Algérie × IA</div>
+        <div class="ab-coords">DZ · KABYLE · DIGITAL</div>
+      </div>
+      <span class="clbl" style="top:8px;left:8px;">N 36°44'</span>
+      <span class="clbl" style="top:8px;right:8px;">E 03°03'</span>
+      <span class="clbl" style="bottom:8px;left:8px;color:rgba(255,0,168,.3);">ALGER</span>
+      <span class="clbl" style="bottom:8px;right:8px;color:rgba(255,0,168,.3);">2025 →</span>
+    </div>
+    <div class="about-text reveal">
+      <p>Créateur indépendant à la croisée de la <span class="hl">culture algérienne</span> et des outils d'IA générative. Je construis des univers visuels qui portent une identité — des avatars aux campagnes brand.</p>
+      <p>Mon workflow mêle <span class="hl">Grok, Sora, iZotope RX</span> et une discipline de prompt engineering rigoureuse pour produire du contenu qui ne ressemble à aucun autre.</p>
+      <p>Enraciné dans la culture berbère, le darija algérien et l'esthétique Nord-Africaine — des éléments qui informent chacun de mes projets.</p>
+    </div>
+  </div>
+  <div class="sec-header reveal" style="margin-top:70px;"><span class="sec-num">05</span><h2 class="sec-title">Skills</h2><div class="sec-line"></div></div>
+  <div class="skills-grid">
+    <div class="skill reveal"><div class="skill-icon">🖼️</div><div class="skill-name">Image IA</div><div class="skill-tools">Grok · Midjourney · Flux</div></div>
+    <div class="skill reveal"><div class="skill-icon">🎬</div><div class="skill-name">Vidéo IA</div><div class="skill-tools">Sora · Kling · Hailuo · Pika</div></div>
+    <div class="skill reveal"><div class="skill-icon">🧬</div><div class="skill-name">Avatar Design</div><div class="skill-tools">Hyper-Réalisme · UGC</div></div>
+    <div class="skill reveal"><div class="skill-icon">🎙️</div><div class="skill-name">Audio IA</div><div class="skill-tools">iZotope RX · Voice Clone</div></div>
+    <div class="skill reveal"><div class="skill-icon">📝</div><div class="skill-name">Prompt Engineering</div><div class="skill-tools">Grok · Sora · Architecture</div></div>
+    <div class="skill reveal"><div class="skill-icon">🏪</div><div class="skill-name">Brand & Marketing</div><div class="skill-tools">CGI · Social · Campagnes</div></div>
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section class="contact-section" id="contact">
+  <h2 class="contact-big reveal">TRAVAILLONS<br><span>ENSEMBLE</span></h2>
+  <div class="reveal"><a href="mailto:contact@takfarinas.ai" class="contact-email">contact@takfarinas.ai</a></div>
+  <div class="social-links reveal">
+    <a href="#" class="social-link">Instagram</a>
+    <a href="#" class="social-link">LinkedIn</a>
+    <a href="#" class="social-link">TikTok</a>
+  </div>
+</section>
+<footer>
+  <span>© 2025 Takfarinas Si Fodil</span>
+  <span class="dot-live"><span class="dot"></span> Disponible pour projets</span>
+  <span>AI Content Creator // DZ</span>
+</footer>
+
+<script>
+// LOADER
+let pct=0;
+const loaderEl=document.getElementById('loader'),pctEl=document.getElementById('ldpct');
+const iv=setInterval(()=>{pct=Math.min(pct+Math.random()*12,100);pctEl.textContent=Math.floor(pct);if(pct>=100){clearInterval(iv);setTimeout(()=>loaderEl.classList.add('done'),400);}},90);
+// CURSOR
+const cursor=document.getElementById('cursor'),trail=document.getElementById('cursorTrail');
+let mx=0,my=0,tx=0,ty=0;
+document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;cursor.style.transform=`translate(${mx-5}px,${my-5}px)`;});
+(function at(){tx+=(mx-tx)*.12;ty+=(my-ty)*.12;trail.style.transform=`translate(${tx-18}px,${ty-18}px)`;requestAnimationFrame(at);})();
+document.querySelectorAll('a,button,video,[data-src]').forEach(el=>{
+  el.addEventListener('mouseenter',()=>{cursor.style.background='var(--cyan)';});
+  el.addEventListener('mouseleave',()=>{cursor.style.background='transparent';});
+});
+// SCROLL REVEAL
+const obs=new IntersectionObserver(entries=>{entries.forEach((e,i)=>{if(e.isIntersecting)setTimeout(()=>e.target.classList.add('visible'),i*60);});},{threshold:.06});
+document.querySelectorAll('.reveal').forEach(el=>obs.observe(el));
+// LIGHTBOX
+const lb=document.getElementById('lightbox'),lbImg=document.getElementById('lbImg'),lbCounter=document.getElementById('lbCounter');
+let lbItems=[],lbIdx=0;
+function openLb(items,idx){lbItems=items;lbIdx=idx;showLb();lb.classList.add('open');document.body.style.overflow='hidden';}
+function showLb(){lbImg.src=lbItems[lbIdx];lbCounter.textContent=(lbIdx+1)+' / '+lbItems.length;}
+document.getElementById('lbClose').onclick=()=>{lb.classList.remove('open');document.body.style.overflow='';};
+document.getElementById('lbPrev').onclick=()=>{lbIdx=(lbIdx-1+lbItems.length)%lbItems.length;showLb();};
+document.getElementById('lbNext').onclick=()=>{lbIdx=(lbIdx+1)%lbItems.length;showLb();};
+lb.addEventListener('click',e=>{if(e.target===lb){lb.classList.remove('open');document.body.style.overflow='';}});
+document.addEventListener('keydown',e=>{
+  if(!lb.classList.contains('open'))return;
+  if(e.key==='Escape'){lb.classList.remove('open');document.body.style.overflow='';}
+  if(e.key==='ArrowLeft'){lbIdx=(lbIdx-1+lbItems.length)%lbItems.length;showLb();}
+  if(e.key==='ArrowRight'){lbIdx=(lbIdx+1)%lbItems.length;showLb();}
+});
+// CLICK HANDLERS
+const cItems=[...document.querySelectorAll('#craveGrid .crave-item')];
+const cSrcs=cItems.map(el=>el.dataset.src);
+cItems.forEach((el,i)=>el.addEventListener('click',()=>openLb(cSrcs,i)));
+const bItems=[...document.querySelectorAll('#brandGrid .brand-item')];
+const bSrcs=bItems.map(el=>el.dataset.src);
+bItems.forEach((el,i)=>el.addEventListener('click',()=>openLb(bSrcs,i)));
+</script>
+</body>
+</html>
